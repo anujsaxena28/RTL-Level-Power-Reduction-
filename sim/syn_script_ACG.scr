@@ -1,0 +1,66 @@
+#/* The directory that contains the verilog files */
+set src_dir ../src
+
+#/* All verilog files, separated by spaces         */
+set my_verilog_files [list $src_dir/DC_EX_gen.v]
+
+#/* Top-level Module                               */
+set my_toplevel DC_EX
+
+#/* The name of the clock pin. If no clock-pin     */
+#/* exists, pick anything                          */
+set my_clock_pin clk
+
+#/* Target frequency in MHz for optimization       */
+set my_clk_freq_MHz 100
+
+#/* Delay of input signals (Clock-to-Q, Package etc.)  */
+set my_input_delay_ns 0.1
+
+#/* Reserved time for output signals (Holdtime etc.)   */
+set my_output_delay_ns 0.1
+
+set target_library gscl45nm.db
+set link_library [list "*" $target_library]
+define_design_lib work -path ./work
+set dir results
+
+saif_map -start
+
+analyze -f verilog $my_verilog_files
+
+elaborate $my_toplevel
+
+current_design $my_toplevel
+
+link
+uniquify
+
+set my_period [expr 1000 / $my_clk_freq_MHz]
+
+set find_clock [ find port [list $my_clock_pin] ]
+if {  $find_clock != [list] } {
+   set clk_name $my_clock_pin
+   create_clock -period $my_period $clk_name
+} else {
+   set clk_name vclk
+   create_clock -period $my_period -name $clk_name
+}
+
+set_driving_cell  -lib_cell INVX1 [all_inputs]
+set_input_delay $my_input_delay_ns -clock $clk_name [remove_from_collection [all_inputs] $my_clock_pin]
+set_output_delay $my_output_delay_ns -clock $clk_name [all_outputs]
+
+insert_clock_gating -global
+
+compile_ultra
+
+check_design
+
+read_saif -input ${my_toplevel}_rtl.saif -instance tb_${my_toplevel}/uut -auto_map_names
+
+report_timing > $dir/${my_toplevel}_ACG.timing
+report_power > $dir/${my_toplevel}_ACG.power
+report_area > $dir/${my_toplevel}_ACG.area
+
+quit
