@@ -1,0 +1,249 @@
+Clock Gating
+Clock Gating is one of the most frequently used techniques in RTL to reduce dynamic power consumption. It provides a way to selectively stop the clock and thus force the original circuit to make no transition, whenever the computation that is to be carried out at the next clock cycle is redundant. In simpler terms, the clock is disabled according to the idle conditions of the logic network. For reactive circuits, the number of clock cycles in which the design is idle in some wait states is usually large. Therefore, avoiding power waste corresponding to such states may be significant. 
+The logic for the clock management is automatically synthesized from the Boolean function that represents the idle conditions of the circuit. It may well be the case that considering all conditions results in additional circuitry that is too large and too power consuming. It may then be necessary to synthesize a simplified function, which dissipates the minimum possible power and stops the clock with maximum efficiency. The use of gated clocks has the drawback that the logic implementing the clock gating mechanism is functionally redundant, and this may create major difficulties in testing and verification.
+ 
+Another difficulty with clock-gating is that one must prevent hazards/glitches on the EN signal from corrupting the clock signal to the register sets. This can be accomplished by introducing a transparent latch between EN and the AND gate as shown in the figure below. 
+ 
+I.	Power, Area and Timing report for Original Design (DC_EX_gen.v)
+The RTL sub-block of a mobile multimedia processor design was simulated using Cadence Verilog-XL and synthesised using Design Compiler. Power for the design with and without clock gating was estimated using power compiler. A synthesis script is written in order to synthesize the design to measure power, area and timing for the design. The power, area and the timing results for the two designs are listed below.  
+1)	Power Estimation of Original Design (DC_EX_gen.v)
+Cell Internal Power = 2.9665 mW
+Net Switching Power = 114.1531 uW
+Total Dynamic Power = 3.0806 mW
+Cell Leakage Power = 126.6353 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 3.0806 + 0.1266353
+ = 3. 2072 mW
+2)	Area (DC_EX_gen.v)
+Total Combinational area = 12258.5850 nm2
+Non-Combinational area = 6308.3307 nm2
+Total Cell Area = 18566.9157 nm2 
+3)	Timing (DC_EX_gen.v)
+Data Required Time= 9.9 ns
+Data Arrival Time = 2.82 ns
+Slack Time = 7.08 ns
+Power, Area and Timing report for example clock gating Design (DC_EX_gen_CG_example.v)
+1)	Power Estimation of Original Design (DC_EX_gen_CG_example.v)
+Cell Internal Power = 2.9522 mW
+Net Switching Power = 111.4403 uW
+Total Dynamic Power = 3.0636 mW
+Cell Leakage Power = 122.6756 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 3.0636 + 0.1226756
+ = 3. 1863 mW
+2)	Area (DC_EX_gen_CG_example.v)
+Total Combinational area = 12043.1763 nm2
+Non-Combinational area = 6313.4930 nm2
+Total Cell Area = 18356.6693 nm2 
+3)	Timing (DC_EX_gen_CG_example.v)
+Data Required Time= 9.9 ns
+Data Arrival Time = 2.82 ns
+Slack Time = 7.08 ns
+
+II.	Automatic Clock Gating Insertion
+Power compiler enables automatic insertion of clock gating during synthesis by using the command “insert_clock_gating -global” in the synthesis script. 
+The power, area and timing results are mentioned below after synthesis of the RTL design. 
+1)	Power Estimation of original design with automatic clock gating script (syn_script_ACG.scr)
+Cell Internal Power = 2.2270 mW
+Net Switching Power = 139.8092 uW
+Total Dynamic Power = 2.3668 mW
+Cell Leakage Power = 116.8189 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 2.3668 + 0.1398092
+ = 2.4836 mW
+2)	Area
+Total Combinational area = 9903.6376 nm2
+Non-Combinational area = 6406.4144 nm2
+Total Cell Area = 16310.0520 nm2
+3)	Timing 
+Data Required Time= 9.9 ns
+Data Arrival Time = 2.09 ns
+Slack Time = 7.81ns
+
+
+III.	Customized Clock Gating
+Clock gating was implemented for all the eligible registers and formal verification was carried out for CCG_ALL_DC_EX_gen.v against the original design DC_EX_gen.v. The following screenshots show that the two designs matched. 
+ 
+ 
+The new clock gated design is simulated and synthesized using a script for power, area and timing estimation. The results of the synthesis are posted in the results folder. Power, area and timing are determined as follows:
+1)	Power Estimation
+Cell Internal Power = 2.2475 mW
+Net Switching Power = 142.5639 uW
+Total Dynamic Power = 2.3901 mW
+Cell Leakage Power = 116.4926 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 2.3901 + 0.1164926
+ = 2.5065 mW
+2)	Area
+Total Combinational area = 9681.6587 nm2
+Non-Combinational area = 6427.0636nm2
+Total Cell Area = 16108.7224 nm2
+3)	Timing 
+Data Required Time= 9.9 ns
+Data Arrival Time = 2.63 ns
+Slack Time = 7.27ns
+ 
+IV.	Optimal Customized Clock Gating
+1)	Clock Gating for 1bit registers (CCG_1Bit_DC_EX_gen.v) 
+In this step clock gating is applied to only the 1-bit registers. Formal verification is done to establish the legitimacy of the design. The following screenshot shows the result for formal verification done using formality.
+ 
+ 
+There were 18 1-bit registers which were modified to implement clock gating. The RTL design was synthesized for power, area, timing estimation using Power Compiler. The results are listed below: 
+i)	Power Estimation
+Cell Internal Power = 2.9653 mW
+Net Switching Power = 114.1721 uW
+Total Dynamic Power = 3.0794 mW
+Cell Leakage Power = 127.3181 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 3.0794 + 0.1273181
+ = 3.2067 mW
+ii)	Area
+Total Combinational area = 12365.1161 nm2
+Non-Combinational area = 6334.1422 nm2
+Total Cell Area =18699.2583 nm2
+iii)	Timing 
+Data Required Time= 9.90ns
+Data Arrival Time = 2.71 ns
+Slack Time = 7.19 ns
+Observation: Implementation of clock gating for only 1-bit registers doesn’t help reduce the power consumption from the original design. There is also a significant area overhead attached with respect to the size of the register. 
+
+2)	Clock Gating for 8-bit registers (CCG_8Bit_DC_EX_gen.v)
+In this step clock gating is applied to only the 8-bit registers. Formal verification is done to establish the legitimacy of the design. The following screenshot shows the result for formal verification done using formality. 
+ 
+
+ 
+There were 10 8-bit registers which were modified to implement clock gating. The RTL design was synthesized for power, area, timing estimation using Power Compiler. The results are listed below: 
+i)	Power Estimation
+Cell Internal Power = 3.0540 mW
+Net Switching Power = 117.9359 uW
+Total Dynamic Power = 3.1719 mW
+Cell Leakage Power = 124.8888 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 3.1719 + 0.1248888 
+ = 3.2968 mW
+ii)	Area
+Total Combinational area = 12152.5232 nm2
+Non-Combinational area = 6354.7914 nm2
+Total Cell Area =18507.3146 nm2
+iii)	Timing 
+Data Required Time= 9.90ns
+Data Arrival Time = 2.52 ns
+Slack Time = 7.38 ns
+Observation: Clock gating scheme for only 8-bit registers doesn’t do well enough in saving power when compared to the original design. There is also a significant area overhead associated with this implementation. 
+
+3)	Clock Gating for 32-bit registers (CCG_32Bit_DC_EX_gen.v)
+In this step clock gating is applied to only the 32-bit registers. Formal verification is done to establish the legitimacy of the design. The following screenshot shows the result for formal verification done using formality. 
+ 
+
+ 
+
+
+
+
+There were 16 32-bit registers which were modified to implement clock gating. The RTL design was synthesized for power, area, timing estimation using Power Compiler. The results are listed below: 
+i)	Power Estimation
+Cell Internal Power = 2.271 mW
+Net Switching Power = 117.3584 uW
+Total Dynamic Power = 2.3895 mW
+Cell Leakage Power = 117.3696 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 2.3895 + 0.1173696
+ = 2.5069 mW
+ii)	Area
+Total Combinational area = 10150.4894 nm2
+Non-Combinational area = 6365.1160 nm2
+Total Cell Area =16515.6054 nm2
+iii)	Timing 
+Data Required Time= 9.90ns
+Data Arrival Time = 1.49 ns
+Slack Time = 8.41 ns
+Observation: The power optimization level reached is high as the dynamic power saved by clock gating the 32-bit registers is large. The dynamic power consumption in 32-bit registers is more because of the high switching activity of large number of bits as compared to a 1-bit or an 8-bit register. The chip area consumed is also optimized in comparison to the original design. 
+
+4)	 Optimized Design (CCG_FINAL_DC_EX_gen.v)  
+The clock gating power reduction scheme was implemented for the 3 types of registers in combinations of 2 to determine the optimal design for low power. It was determined through logic synthesis of the design that the combination of clock gating for 8Bit and 32Bit registers yielded the least power and area. 
+The formal verification output is shown in the screenshots below. 
+ 
+ 
+The power, area, timing results for the above specified design implementation is listed below: 
+i)	Power Estimation
+Cell Internal Power = 2.1924 mW
+Net Switching Power = 137.6712 uW
+Total Dynamic Power = 2.3301 mW
+Cell Leakage Power = 116.7943 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 2.3301 + 0.1167943
+ = 2.4469 mW
+
+ii)	Area
+Total Combinational area = 9940.7123 nm2
+Non-Combinational area = 6406.4144 nm2
+Total Cell Area =16347.1267 nm2
+iii)	Timing 
+Data Required Time= 9.90ns
+Data Arrival Time = 1.70 ns
+Slack Time = 8.20 ns
+Observation:
+It is observed that the clock gating design for 8Bit and 32Bit registers is the most efficient in terms of power since the clock gating design minimises the unwanted clock transitions when the circuit is idle thereby reducing the dynamic power. The bus width plays an important role in determining the overall activity factor. Hence for large registers/buses the dynamic power consumption is also huge. Therefore, it makes sense to implement clock gating for large buses/registers rather than small registers which suffer from clock gating area overhead.  
+
+5)	Algorithm for optimal design solution
+The optimized design is obtained by implementing the clock gating scheme in the following combinations:
+1)	Clock Gating for 1-bit and 8-bit Registers
+Clock Gating was implemented for 1-Bit and 8-Bit Bit registers. The RTL code was synthesised to estimate the power of the design. The power, area and timing results for this combination is as follows:
+i)	Power Estimation
+Cell Internal Power = 3.0161 mW
+Net Switching Power = 120.8320 uW
+Total Dynamic Power = 3.1370 mW
+Cell Leakage Power = 126.3716 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 3.1370 + 0.1263716
+ = 3.2633 mW
+ii)	Area
+Total Combinational area = 12161.4399 nm2
+Non-Combinational area = 6375.4406 nm2
+Total Cell Area = 18536.8805 nm2
+iii)	Timing 
+Data Required Time= 9.90ns
+Data Arrival Time = 2.51 ns
+Slack Time = 7.39 ns
+
+2)	Clock-Gating for 1-Bit and 32-Bit Registers
+Clock Gating was implemented for 1-Bit and 32-Bit registers. The RTL code was synthesised to estimate the power of the design. The power, area and timing results for this combination is as follows: 
+i)	Power Estimation
+Cell Internal Power = 2.2372 mW
+Net Switching Power = 122.2512 uW
+Total Dynamic Power = 2.3594 mW
+Cell Leakage Power = 118.3295 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 2.3594 + 0.1183295
+ = 2.4777 mW
+
+ii)	Area
+Total Combinational area = 10276.73115 nm2
+Non-Combinational area = 6385.7652 nm2
+Total Cell Area =16662.496388 nm2
+iii)	Timing 
+Data Required Time= 9.90ns
+Data Arrival Time = 1.35 ns
+Slack Time = 8.55 ns
+
+3)	Clock-Gating for 8-Bit and 32-Bit Registers
+Clock Gating was implemented for 8-Bit and 32-Bit Bit registers. The RTL code was synthesised to estimate the power of the design. The power, area and timing results for this combination is as follows:
+iv)	Power Estimation
+Cell Internal Power = 2.1924 mW
+Net Switching Power = 137.6712 uW
+Total Dynamic Power = 2.3301 mW
+Cell Leakage Power = 116.7943 uW
+Total Power Consumption= Total Dynamic power + Cell Leakage Power 
+ = 2.3301 + 0.1167943
+ = 2.4469 mW
+
+v)	Area
+Total Combinational area = 9940.7123 nm2
+Non-Combinational area = 6406.4144 nm2
+Total Cell Area =16347.1267 nm2
+vi)	Timing 
+Data Required Time= 9.90ns
+Data Arrival Time = 1.70 ns
+Slack Time = 8.20 ns
+All the 6 different clock gating implementations for the Mobile Multimedia Processor was evaluated based on power, area, timing. The clock gating design for 8Bit and 32Bit registers was found to the most efficient in terms of power and had the least area overhead.  
+
